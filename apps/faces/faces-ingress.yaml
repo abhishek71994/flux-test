@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: faces-gui
+  labels:
+    app: faces-gui
+  annotations:
+    nginx.ingress.kubernetes.io/service-upstream: "true" # IMPORTANT!!! -> Required for AB testing using NGINX with Linkerd
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "*.faces.sslip.io"
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: faces-gui
+                port:
+                  name: http
+          - pathType: Prefix
+            path: /color
+            backend:
+              service:
+                name: color
+                port:
+                  name: http
+          - pathType: Prefix
+            path: /face
+            backend:
+              service:
+                name: face
+                port:
+                  name: http
+          - pathType: Prefix
+            path: /smiley
+            backend:
+              service:
+                name: smiley
+                port:
+                  name: http

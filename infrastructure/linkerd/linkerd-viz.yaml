@@ -1,0 +1,53 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: linkerd-viz
+  namespace: linkerd-viz
+spec:
+  interval: 30m
+  targetNamespace: linkerd-viz
+  dependsOn:
+    - name: linkerd-control-plane
+      namespace: linkerd
+  releaseName: linkerd-viz
+  chart:
+    spec:
+      version: "30.x"
+      chart: linkerd-viz
+      sourceRef:
+        kind: HelmRepository
+        name: linkerd
+        namespace: linkerd
+      interval: 12h
+  # https://artifacthub.io/packages/helm/linkerd2/linkerd-viz
+  values:
+    grafana:
+      enabled: true
+    prometheus:
+      enabled: true
+---
+# https://linkerd.io/2.12/tasks/exposing-dashboard/#nginx
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-ingress
+  namespace: linkerd-viz
+  annotations:
+    nginx.ingress.kubernetes.io/upstream-vhost: $service_name.$namespace.svc.cluster.local
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Origin "";
+      proxy_hide_header l5d-remote-ip;
+      proxy_hide_header l5d-server-id;
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "*.linkerd.sslip.io"
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: web
+                port:
+                  name: http

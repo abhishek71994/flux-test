@@ -1,0 +1,92 @@
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: face
+spec:
+  provider: linkerd
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: face
+  progressDeadlineSeconds: 60
+  service:
+    port: 80
+    targetPort: http
+  analysis:
+    interval: 10s
+    threshold: 3
+    maxWeight: 50
+    stepWeight: 5
+    metrics:
+      - name: request-success-rate
+        thresholdRange:
+          min: 70
+        interval: 1m
+    webhooks:
+      - name: load-test
+        type: rollout
+        url: http://flagger-loadtester.flagger-system/
+        metadata:
+          cmd: "hey -z 2m -q 10 -c 2 http://face-canary.faces/"
+---
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: color
+spec:
+  provider: linkerd
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: color
+  progressDeadlineSeconds: 60
+  service:
+    port: 80
+    targetPort: http
+  analysis:
+    interval: 10s
+    threshold: 3
+    maxWeight: 50
+    stepWeight: 5
+    metrics:
+      - name: request-success-rate
+        thresholdRange:
+          min: 70
+        interval: 1m
+    webhooks:
+      - name: load-test
+        type: rollout
+        url: http://flagger-loadtester.flagger-system/
+        metadata:
+          cmd: "hey -z 2m -q 10 -c 2 http://color-canary.faces/"
+---
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: smiley
+spec:
+  provider: linkerd
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: smiley
+  progressDeadlineSeconds: 60
+  service:
+    port: 80
+    targetPort: http
+  analysis:
+    interval: 10s
+    threshold: 3
+    maxWeight: 50
+    stepWeight: 5
+    metrics:
+      - name: request-success-rate
+        thresholdRange:
+          min: 70
+        interval: 1m
+    webhooks:
+      - name: load-test
+        type: rollout
+        url: http://flagger-loadtester.flagger-system/
+        metadata:
+          cmd: "hey -z 2m -q 10 -c 2 http://smiley-canary.faces/"
